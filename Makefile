@@ -1,4 +1,7 @@
 build:
 	@go build -o ./dist/app
 run: build
-	@./dist/app
+	@./dist/app	
+test: 
+	@go clean -testcache
+	@go test -race -v ./ 
