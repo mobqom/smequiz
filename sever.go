@@ -42,6 +42,8 @@ func (s *Server) handleWs(w http.ResponseWriter, r *http.Request) {
 	}
 	client := NewClient(conn)
 	s.joinServerCh <- client
+
+	go client.writeMessageLoop()
 	go client.readMsgLoop(s)
 }
 func (s *Server) joinServer(c *Client) {
@@ -52,22 +54,10 @@ func (s *Server) leaveSever(c *Client) {
 	delete(s.clients, c.ID)
 	fmt.Printf("client left the server, cId = %s\n", c.ID)
 }
-func (s *Server) broadcast(msg *ReqMsg) {
-	cls := []*Client{}
-	s.mu.RLock()
-	for _, c := range s.clients {
-		if c.ID != msg.Client.ID {
-			cls = append(cls, c)
-		}
-	}
-	s.mu.RUnlock()
+func (s *Server) broadcast(msg *ReqMsg, cls map[string]*Client) {
 	resp := NewResMsg(msg)
 	for _, c := range cls {
-		err := c.conn.WriteJSON(resp)
-		if err != nil {
-			fmt.Printf("error sending message to cID = %s", c.ID)
-			continue
-		}
+		c.msgCh <- resp
 	}
 	fmt.Println("broadcast was sent")
 }
@@ -80,7 +70,13 @@ func (s *Server) AcceptLoop() {
 		case c := <-s.leaveServerCh:
 			s.leaveSever(c)
 		case msg := <-s.broadcastCh:
-			go s.broadcast(msg)
+			cls := map[string]*Client{}
+			for id, c := range s.clients {
+				if c.ID != msg.Client.ID {
+					cls[id] = c
+				}
+			}
+			go s.broadcast(msg, cls)
 		}
 	}
 }

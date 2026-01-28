@@ -15,6 +15,14 @@ const (
 	MsgType_Broadcast MsgType = "broadcast"
 )
 
+type Client struct {
+	ID     string
+	mu     *sync.RWMutex
+	conn   *websocket.Conn
+	msgCh  chan *ResMsg
+	doneCh chan struct{}
+}
+
 type ReqMsg struct {
 	MsgType MsgType
 	Client  *Client
@@ -34,24 +42,20 @@ func NewResMsg(msg *ReqMsg) *ResMsg {
 	}
 }
 
-type Client struct {
-	ID   string
-	mu   *sync.RWMutex
-	conn *websocket.Conn
-}
-
 func NewClient(conn *websocket.Conn) *Client {
 	ID := rand.Text()
 	return &Client{
-		ID:   ID,
-		mu:   new(sync.RWMutex),
-		conn: conn,
+		ID:     ID,
+		mu:     new(sync.RWMutex),
+		conn:   conn,
+		msgCh:  make(chan *ResMsg, 64),
+		doneCh: make(chan struct{}),
 	}
 }
 
 func (c *Client) readMsgLoop(srv *Server) {
 	defer func() {
-		c.conn.Close()
+		close(c.doneCh)
 		srv.leaveServerCh <- c
 	}()
 	for {
@@ -69,5 +73,22 @@ func (c *Client) readMsgLoop(srv *Server) {
 		msg.Client = c
 		srv.broadcastCh <- msg
 		// fmt.Println((string)p)
+	}
+}
+
+func (c *Client) writeMessageLoop() {
+	defer c.conn.Close()
+	for {
+		select {
+		case <-c.doneCh:
+			return
+		case msg := <-c.msgCh:
+			err := c.conn.WriteJSON(msg)
+			if err != nil {
+				fmt.Printf("error sending message to cID = %s", c.ID)
+				return
+			}
+
+		}
 	}
 }
