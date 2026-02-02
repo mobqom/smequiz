@@ -13,6 +13,7 @@ func NewRoom(id string) *Room {
 	return &Room{
 		ID:      id,
 		players: map[string]*Player{},
+		Stage:   Stage_Waiting,
 	}
 }
 

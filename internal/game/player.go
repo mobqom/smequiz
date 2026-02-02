@@ -16,8 +16,11 @@ type Player struct {
 
 func NewPlayer(id string, conn *websocket.Conn) *Player {
 	return &Player{
-		ID:   id,
-		Conn: conn}
+		ID:     id,
+		Conn:   conn,
+		Screen: Screen_WaitPlayers,
+		score:  0,
+	}
 }
 
 func (p *Player) ReadMessage(gm *GameManager) error {
