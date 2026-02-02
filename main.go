@@ -13,8 +13,7 @@ const (
 	Port = ":8080"
 )
 
-func main() {
-
+func startApp() {
 	fmt.Printf("Starting WebSocket server on port %s\n", Port)
 	gm := game.NewGameManager()
 	s := server.NewWSServer()
@@ -27,5 +26,7 @@ func main() {
 	go s.AcceptLoop()
 
 	log.Fatal(http.ListenAndServe(Port, nil))
-
+}
+func main() {
+	startApp()
 }

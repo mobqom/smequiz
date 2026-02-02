@@ -23,7 +23,11 @@ func NewPlayer(id string, conn *websocket.Conn) *Player {
 	}
 }
 
-func (p *Player) ReadMessage(gm *GameManager) error {
+func (p *Player) ReadMessage(gm *GameManager, leaveServerCh chan<- *Player) error {
+	defer func() {
+		leaveServerCh <- p
+		p.Conn.Close()
+	}()
 	for {
 		_, dt, err := p.Conn.ReadMessage()
 		if err != nil {

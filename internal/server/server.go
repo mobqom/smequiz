@@ -20,8 +20,8 @@ type Server struct {
 
 func NewWSServer() *Server {
 	return &Server{
-		joinServerCh:  make(chan *game.Player),
-		leaveServerCh: make(chan *game.Player),
+		joinServerCh:  make(chan *game.Player, 64),
+		leaveServerCh: make(chan *game.Player, 64),
 	}
 }
 
@@ -40,7 +40,7 @@ func (s *Server) HandleWs(gm *game.GameManager, w http.ResponseWriter, r *http.R
 	}
 	player := game.NewPlayer(r.RemoteAddr, conn)
 	s.joinServerCh <- player
-	go player.ReadMessage(gm)
+	go player.ReadMessage(gm, s.leaveServerCh)
 }
 func (s *Server) HandleCreateRoom(gm *game.GameManager, w http.ResponseWriter, r *http.Request) {
 	newRoom := gm.CreateRoom()
