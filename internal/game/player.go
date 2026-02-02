@@ -8,8 +8,10 @@ import (
 )
 
 type Player struct {
-	ID   string
-	Conn *websocket.Conn
+	ID     string
+	Conn   *websocket.Conn
+	Screen Screen
+	score  uint
 }
 
 func NewPlayer(id string, conn *websocket.Conn) *Player {
@@ -26,9 +28,9 @@ func (p *Player) ReadMessage(gm *GameManager) error {
 		}
 		msg := new(ReqMsg)
 		json.Unmarshal(dt, msg)
+		msg.Player = p
 		fmt.Println(msg)
 
-		msg.Player = p
 		switch msg.MsgType {
 		case MsgType_JoinRoom:
 			p.joinRoom(gm, msg)
@@ -39,7 +41,7 @@ func (p *Player) ReadMessage(gm *GameManager) error {
 }
 func (p *Player) joinRoom(gm *GameManager, msg *ReqMsg) {
 	room := gm.GetOrCreateRoom(msg.RoomID)
-	room.AddPlayer(p)
+	room.joinRoom(p)
 	fmt.Printf("Player %s joined room %s\n", p.ID, msg.RoomID)
 }
 
@@ -49,6 +51,12 @@ func (p *Player) leaveRoom(gm *GameManager, msg *ReqMsg) {
 		fmt.Printf("Room %s does not exist\n", msg.RoomID)
 		return
 	}
+
 	room.RemovePlayer(p)
-	fmt.Printf("Player %s joined room %s\n", p.ID, msg.RoomID)
+	fmt.Printf("Player %s left room %s\n", p.ID, msg.RoomID)
+
+	if playersCount := len(room.players); playersCount == 0 {
+		gm.DeleteRoom(room.ID)
+		fmt.Printf("Room %s deleted as it became empty\n", msg.RoomID)
+	}
 }

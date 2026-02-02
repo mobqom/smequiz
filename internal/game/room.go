@@ -1,8 +1,12 @@
 package game
 
+import "sync"
+
 type Room struct {
 	ID      string
 	players map[string]*Player
+	Stage   Stage
+	mu      sync.Mutex
 }
 
 func NewRoom(id string) *Room {
@@ -12,7 +16,9 @@ func NewRoom(id string) *Room {
 	}
 }
 
-func (r *Room) AddPlayer(p *Player) {
+func (r *Room) joinRoom(p *Player) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
 	r.players[p.ID] = p
 }
 
