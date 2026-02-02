@@ -21,6 +21,9 @@ func main() {
 	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
 		s.HandleWs(gm, w, r)
 	})
+	http.HandleFunc("/api/create-room", func(w http.ResponseWriter, r *http.Request) {
+		s.HandleCreateRoom(gm, w, r)
+	})
 	go s.AcceptLoop()
 
 	log.Fatal(http.ListenAndServe(Port, nil))

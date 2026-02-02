@@ -1,12 +1,17 @@
 package server
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 
 	"github.com/gorilla/websocket"
 	"github.com/ibezgin/mobqom-smequiz/internal/game"
 )
+
+type NewRoomResponse struct {
+	ID string `json:"id"`
+}
 
 type Server struct {
 	joinServerCh  chan *game.Player
@@ -36,6 +41,13 @@ func (s *Server) HandleWs(gm *game.GameManager, w http.ResponseWriter, r *http.R
 	player := game.NewPlayer(r.RemoteAddr, conn)
 	s.joinServerCh <- player
 	go player.ReadMessage(gm)
+}
+func (s *Server) HandleCreateRoom(gm *game.GameManager, w http.ResponseWriter, r *http.Request) {
+	newRoom := gm.CreateRoom()
+	w.Header().Set("Content-Type", "application/json")
+	resp := NewRoomResponse{ID: newRoom.ID}
+	json.NewEncoder(w).Encode(resp)
+	fmt.Printf("Room created with ID: %s\n", newRoom.ID)
 }
 
 func (s *Server) AcceptLoop() {

@@ -44,7 +44,7 @@ func (p *Player) ReadMessage(gm *GameManager) error {
 }
 func (p *Player) joinRoom(gm *GameManager, msg *ReqMsg) {
 	room := gm.GetOrCreateRoom(msg.RoomID)
-	room.joinRoom(p)
+	room.AddPlayer(p)
 	fmt.Printf("Player %s joined room %s\n", p.ID, msg.RoomID)
 }
 

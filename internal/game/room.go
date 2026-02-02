@@ -17,7 +17,7 @@ func NewRoom(id string) *Room {
 	}
 }
 
-func (r *Room) joinRoom(p *Player) {
+func (r *Room) AddPlayer(p *Player) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	r.players[p.ID] = p
