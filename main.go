@@ -1,22 +1,19 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
+
+	"github.com/ibezgin/mobqom-smequiz/pkg/server"
 )
 
 const (
-	WSPort = ":3223"
+	WSPort = ":8080"
 )
 
-func createWSServer() {
-	s := NewServer()
-	go s.AcceptLoop()
-	go fmt.Printf("Starting ws server on port %s\n", WSPort)
-	http.HandleFunc("/", s.handleWs)
-	log.Fatal(http.ListenAndServe(WSPort, nil))
-}
 func main() {
-	createWSServer()
+	s := server.NewWSServer()
+	s.Run(WSPort)
+	log.Fatal(http.ListenAndServe(WSPort, nil))
+
 }
