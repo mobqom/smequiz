@@ -31,9 +31,6 @@ func TestConnection(t *testing.T) {
 		go func() {
 			conn := DialSever()
 			time.Sleep(1 * time.Second)
-
-			time.Sleep(1 * time.Second)
-
 			defer func() {
 				conn.Close()
 				wg.Done()
