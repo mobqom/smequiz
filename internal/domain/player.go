@@ -1,6 +1,9 @@
 package domain
 
 import (
+	"fmt"
+	"sync"
+
 	"github.com/gorilla/websocket"
 	"github.com/ibezgin/mobqom-smequiz/internal/dto"
 )
@@ -18,6 +21,7 @@ type player struct {
 	Id     string
 	Name   string
 	RoomId string
+	mu     sync.Mutex
 }
 
 func NewPlayer(conn *websocket.Conn, id string) Player {
@@ -43,5 +47,10 @@ func (p *player) GetId() string {
 	return p.Id
 }
 func (p *player) SendMsg(msg *dto.Msg) {
-	p.GetConn().WriteJSON(msg)
+	p.mu.Lock()
+	err := p.GetConn().WriteJSON(msg)
+	p.mu.Unlock()
+	if err != nil {
+		fmt.Printf("%s: send msg err: %v\n", p.GetId(), err)
+	}
 }

@@ -10,8 +10,7 @@ import (
 	"github.com/ibezgin/mobqom-smequiz/internal/domain"
 )
 
-func Run() {
-	cfg := config.InitConfig()
+func Run(cfg *config.AppConfig) {
 	fmt.Printf("Starting server on port %s\n", cfg.Port)
 	m := domain.NewRoomManager()
 	router.Init(m)

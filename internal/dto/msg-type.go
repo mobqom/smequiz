@@ -8,4 +8,5 @@ const (
 	LEAVE_ROOM   ActionType = "LEAVE_ROOM"
 	PLAYERS_LIST ActionType = "PLAYERS_LIST"
 	SET_NAME     ActionType = "SET_NAME"
+	CURRENT_ROOM ActionType = "CURRENT_ROOM"
 )

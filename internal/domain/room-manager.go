@@ -32,7 +32,9 @@ func (rm *roomManager) CreateRoom(roomId string) (Room, error) {
 }
 
 func (rm *roomManager) GetRoom(roomId string) (Room, error) {
+	rm.mutex.Lock()
 	room, exists := rm.rooms[roomId]
+	rm.mutex.Unlock()
 	if !exists {
 		return nil, errors.New("room not found")
 	}

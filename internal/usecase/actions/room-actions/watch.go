@@ -25,7 +25,7 @@ func Watch(m domain.RoomManager, p domain.Player, reqMsg *dto.Msg) {
 		room.Join(p)
 		fmt.Printf("%s: created room %s\n", p.GetId(), roomId)
 		go sendPlayersList(room)
-
+		go sendCurrentRoom(p)
 	case dto.JOIN_ROOM:
 		roomId := reqMsg.Payload.(string)
 		room, err := m.GetRoom(roomId)
@@ -36,7 +36,7 @@ func Watch(m domain.RoomManager, p domain.Player, reqMsg *dto.Msg) {
 		p.SetRoomId(roomId)
 		room.Join(p)
 		go sendPlayersList(room)
-
+		go sendCurrentRoom(p)
 		fmt.Printf("player %s has bean joined to to room %s\n", p.GetId(), roomId)
 	case dto.LEAVE_ROOM:
 		roomId := p.GetRoomId()
@@ -48,8 +48,8 @@ func Watch(m domain.RoomManager, p domain.Player, reqMsg *dto.Msg) {
 		room.Leave(p)
 		p.SetRoomId("")
 		go sendPlayersList(room)
-
 		DeleteEmptyRoom(p, m)
+		go sendCurrentRoom(p)
 		fmt.Printf("player %s left the room", p.GetRoomId())
 	default:
 	}
@@ -77,4 +77,13 @@ func sendPlayersList(room domain.Room) {
 
 	}
 	room.SendMsg(&dto.Msg{Action: dto.PLAYERS_LIST, Payload: list})
+}
+
+func sendCurrentRoom(p domain.Player) {
+	p.SendMsg(
+		&dto.Msg{
+			Action:  dto.CURRENT_ROOM,
+			Payload: p.GetRoomId(),
+		},
+	)
 }

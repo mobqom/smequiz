@@ -1,24 +1,31 @@
 package test
 
 import (
+	"fmt"
 	"sync"
 	"testing"
 	"time"
 
 	"github.com/gorilla/websocket"
+	"github.com/ibezgin/mobqom-smequiz/config"
 	"github.com/ibezgin/mobqom-smequiz/internal/server"
 )
 
 func TestConnection(t *testing.T) {
 	const connCount = 2
-	go server.Run()
+	cfg := &config.AppConfig{
+		Host: "localhost",
+		Port: "8080",
+	}
+	go server.Run(cfg)
 	time.Sleep(1 * time.Second)
 	var wg sync.WaitGroup
 	for range connCount {
 		wg.Add(1)
 		go func() {
 			dialer := websocket.DefaultDialer
-			conn, _, err := dialer.Dial("ws://localhost:8080/game", nil)
+			conn, _, err := dialer.Dial(
+				fmt.Sprintf("ws://%s:%s/game", cfg.Host, cfg.Port), nil)
 			if err != nil {
 				t.Logf("Connection error: %v", err)
 				return
