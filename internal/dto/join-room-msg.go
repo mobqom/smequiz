@@ -1,6 +1,6 @@
 package dto
 
 type JoinRoomMsg struct {
-	ReqMsg
+	Msg
 	data string
 }

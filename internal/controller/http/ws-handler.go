@@ -33,7 +33,7 @@ func readPlayerMessages(p domain.Player, m domain.RoomManager) {
 			}
 			return
 		}
-		reqMsg := new(dto.ReqMsg)
+		reqMsg := new(dto.Msg)
 		err = json.Unmarshal(msgBytes, reqMsg)
 
 		if err != nil {
