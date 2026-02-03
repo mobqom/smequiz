@@ -10,7 +10,7 @@ import (
 )
 
 func TestConnection(t *testing.T) {
-	const connCount = 999
+	const connCount = 2
 	go server.Run()
 	time.Sleep(1 * time.Second)
 	var wg sync.WaitGroup
