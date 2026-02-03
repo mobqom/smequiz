@@ -8,9 +8,26 @@ import (
 	"github.com/ibezgin/mobqom-smequiz/internal/utils"
 )
 
+func DeleteEmptyRoom(p domain.Player, m domain.RoomManager) {
+	roomId := p.GetRoomId()
+	room, err := m.GetRoom(roomId)
+	if err != nil {
+		return
+	}
+	room.Leave(p)
+	playersCount := room.PlayersCount()
+	if playersCount == 0 {
+		m.DeleteRoom(roomId)
+	}
+}
+
 func Watch(m domain.RoomManager, p domain.Player, reqMsg *dto.ReqMsg) {
 	switch reqMsg.Action {
 	case dto.CREATE_ROOM:
+		if playerRoomId := p.GetRoomId(); playerRoomId != "" {
+			fmt.Printf("player already has room")
+			return
+		}
 		roomId := utils.GenerateId("room")
 		room, err := m.CreateRoom(roomId)
 		if err != nil {
@@ -40,6 +57,7 @@ func Watch(m domain.RoomManager, p domain.Player, reqMsg *dto.ReqMsg) {
 		}
 		room.Leave(p)
 		p.SetRoomId("")
+		DeleteEmptyRoom(p, m)
 		fmt.Printf("player %s left the room", p.GetRoomId())
 	default:
 	}

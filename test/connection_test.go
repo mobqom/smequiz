@@ -26,13 +26,12 @@ func TestConnection(t *testing.T) {
 
 			time.Sleep(3 * time.Second)
 
-			defer func() {
-				// send a proper close control message so server sees a normal closure
-				_ = conn.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
-				conn.Close()
-				wg.Done()
-			}()
+			// send a proper close control message so server sees a normal closure
+			_ = conn.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
+			conn.Close()
+			wg.Done()
 		}()
 	}
 	wg.Wait()
+	time.Sleep(500 * time.Millisecond) // Give server time to process closures
 }

@@ -3,21 +3,27 @@ package domain
 type Room interface {
 	Join(player Player)
 	Leave(player Player)
+	PlayersCount() int
 }
 type room struct {
 	id      string
-	clients map[string]*Player
+	players map[string]*Player
 }
 
 func NewRoom(id string) Room {
 	return &room{
 		id:      id,
-		clients: make(map[string]*Player),
+		players: make(map[string]*Player),
 	}
 }
 
 func (room *room) Join(player Player) {
-	room.clients[player.GetId()] = &player
+	room.players[player.GetId()] = &player
 }
 
-func (room *room) Leave(player Player) {}
+func (room *room) Leave(player Player) {
+	delete(room.players, player.GetId())
+}
+func (room *room) PlayersCount() int {
+	return len(room.players)
+}
