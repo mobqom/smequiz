@@ -9,8 +9,8 @@ import (
 )
 
 type AppConfig struct {
-	Host string `env:"HOST"`
-	Port string `env:"PORT"`
+	Host string `env:"HOST, default="localhost"`
+	Port string `env:"PORT, default=8080"`
 }
 
 func InitConfig() *AppConfig {

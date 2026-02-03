@@ -20,6 +20,7 @@ func handleWs(m domain.RoomManager, w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		fmt.Println("Error upgrading to websocket:", err)
+		return
 	}
 
 	playerId := utils.GenerateId("player")

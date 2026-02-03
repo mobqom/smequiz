@@ -36,8 +36,11 @@ func Watch(m domain.RoomManager, p domain.Player, reqMsg *dto.ReqMsg) {
 		room, err := m.GetRoom(roomId)
 		if err != nil {
 			fmt.Printf("room does not exist\n")
+			return
 		}
 		room.Leave(p)
 		p.SetRoomId("")
+		fmt.Printf("player %s left the room", p.GetRoomId())
+	default:
 	}
 }
