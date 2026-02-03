@@ -6,4 +6,4 @@ require github.com/gorilla/websocket v1.5.3
 
 require github.com/sethvargo/go-envconfig v1.3.0
 
-require github.com/joho/godotenv v1.5.1 // indirect
+require github.com/joho/godotenv v1.5.1
