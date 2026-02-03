@@ -40,7 +40,7 @@ func readPlayerMessages(p domain.Player, m domain.RoomManager) {
 			fmt.Println("Error unmarshalling from websocket:", err)
 			return
 		}
-		usecase.ActionsWatchersHub(m, p, reqMsg)
+		go usecase.StartActionWatchers(m, p, reqMsg)
 	}
 }
 

@@ -2,6 +2,7 @@ package domain
 
 import (
 	"github.com/gorilla/websocket"
+	"github.com/ibezgin/mobqom-smequiz/internal/dto"
 )
 
 type Player interface {
@@ -10,6 +11,7 @@ type Player interface {
 	SetName(name string)
 	GetConn() *websocket.Conn
 	GetId() string
+	SendMsg(msg *dto.Msg)
 }
 type player struct {
 	Conn   *websocket.Conn
@@ -39,4 +41,7 @@ func (p *player) GetConn() *websocket.Conn {
 }
 func (p *player) GetId() string {
 	return p.Id
+}
+func (p *player) SendMsg(msg *dto.Msg) {
+	p.GetConn().WriteJSON(msg)
 }

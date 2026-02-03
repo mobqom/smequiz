@@ -12,7 +12,7 @@ func Watch(m domain.RoomManager, p domain.Player, reqMsg *dto.Msg) {
 	switch reqMsg.Action {
 	case dto.CREATE_ROOM:
 		if playerRoomId := p.GetRoomId(); playerRoomId != "" {
-			fmt.Printf("player already has room")
+			fmt.Printf("player already has room\n")
 			return
 		}
 		roomId := utils.GenerateId("room")
@@ -23,13 +23,14 @@ func Watch(m domain.RoomManager, p domain.Player, reqMsg *dto.Msg) {
 		}
 		p.SetRoomId(roomId)
 		room.Join(p)
-		fmt.Printf("room %s has been created\n", roomId)
+		fmt.Printf("%s: created room %s\n", p.GetId(), roomId)
+		go sendPlayersList(room)
 
 	case dto.JOIN_ROOM:
 		roomId := reqMsg.Payload.(string)
 		room, err := m.GetRoom(roomId)
 		if err != nil {
-			fmt.Printf("room does not exist %s\n", err)
+			fmt.Printf("%s: room does not exist %s\n", roomId, err)
 			return
 		}
 		p.SetRoomId(roomId)
@@ -46,7 +47,7 @@ func Watch(m domain.RoomManager, p domain.Player, reqMsg *dto.Msg) {
 		}
 		room.Leave(p)
 		p.SetRoomId("")
-		sendPlayersList(room)
+		go sendPlayersList(room)
 
 		DeleteEmptyRoom(p, m)
 		fmt.Printf("player %s left the room", p.GetRoomId())
@@ -64,6 +65,7 @@ func DeleteEmptyRoom(p domain.Player, m domain.RoomManager) {
 	playersCount := room.PlayersCount()
 	if playersCount == 0 {
 		m.DeleteRoom(roomId)
+		fmt.Printf("empty room has been deleted %s\n", roomId)
 	}
 }
 
@@ -74,7 +76,5 @@ func sendPlayersList(room domain.Room) {
 		list = append(list, c.GetId())
 
 	}
-	for _, c := range clients {
-		c.GetConn().WriteJSON(dto.Msg{Action: dto.PLAYERS_LIST, Payload: list})
-	}
+	room.SendMsg(&dto.Msg{Action: dto.PLAYERS_LIST, Payload: list})
 }
