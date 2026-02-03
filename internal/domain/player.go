@@ -25,7 +25,6 @@ func NewPlayer(conn *websocket.Conn, id string) Player {
 		Name: "",
 	}
 }
-
 func (p *player) SetRoomId(roomId string) {
 	p.RoomId = roomId
 }

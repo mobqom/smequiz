@@ -22,7 +22,6 @@ func handleWs(m domain.RoomManager, w http.ResponseWriter, r *http.Request) {
 		fmt.Println("Error upgrading to websocket:", err)
 		return
 	}
-
 	playerId := utils.GenerateId("player")
 	p := domain.NewPlayer(conn, playerId)
 	fmt.Println("Client join the server", p.GetConn().LocalAddr().String())
