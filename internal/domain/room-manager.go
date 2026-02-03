@@ -6,22 +6,22 @@ import (
 )
 
 type roomManager struct {
-	rooms map[string]*Room
+	rooms map[string]Room
 	mutex sync.Mutex
 }
 type RoomManager interface {
-	CreateRoom(roomId string) (*Room, error)
-	GetRoom(roomId string) (*Room, error)
+	CreateRoom(roomId string) (Room, error)
+	GetRoom(roomId string) (Room, error)
 	DeleteRoom(roomId string) error
 }
 
 func NewRoomManager() *roomManager {
 	return &roomManager{
-		rooms: make(map[string]*Room),
+		rooms: make(map[string]Room),
 	}
 }
 
-func (rm *roomManager) CreateRoom(roomId string) (*Room, error) {
+func (rm *roomManager) CreateRoom(roomId string) (Room, error) {
 	if _, exist := rm.rooms[roomId]; exist {
 		return nil, errors.New("room already exists")
 	}
@@ -31,7 +31,7 @@ func (rm *roomManager) CreateRoom(roomId string) (*Room, error) {
 	return rm.rooms[roomId], nil
 }
 
-func (rm *roomManager) GetRoom(roomId string) (*Room, error) {
+func (rm *roomManager) GetRoom(roomId string) (Room, error) {
 	room, exists := rm.rooms[roomId]
 	if !exists {
 		return nil, errors.New("room not found")

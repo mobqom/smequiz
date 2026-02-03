@@ -4,16 +4,18 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/gorilla/websocket"
 	"github.com/ibezgin/mobqom-smequiz/internal/domain"
 	"github.com/ibezgin/mobqom-smequiz/internal/dto"
-	"github.com/ibezgin/mobqom-smequiz/internal/utils"
+	roomActions "github.com/ibezgin/mobqom-smequiz/internal/usecase/actions"
 )
 
-func ListenMessageLoop(conn *websocket.Conn, m domain.RoomManager) {
+func ReadPlayerMessages(p domain.Player, m domain.RoomManager) {
+	defer func() {
+		fmt.Println("Client left the server", p.GetConn().LocalAddr().String())
+	}()
 	for {
 		reqMsg := new(dto.ReqMsg)
-		_, msgBytes, err := conn.ReadMessage()
+		_, msgBytes, err := p.GetConn().ReadMessage()
 		if err != nil {
 			fmt.Println("Error reading from websocket:", err)
 		}
@@ -22,11 +24,7 @@ func ListenMessageLoop(conn *websocket.Conn, m domain.RoomManager) {
 		if err != nil {
 			fmt.Println("Error unmarshalling from websocket:", err)
 		}
-		switch reqMsg.Action {
-		case dto.CREATE_ROOM:
-			roomId := utils.GenerateId("room")
-			m.CreateRoom(roomId)
 
-		}
+		roomActions.Watch(m, p, reqMsg)
 	}
 }

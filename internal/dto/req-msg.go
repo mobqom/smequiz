@@ -1,6 +1,6 @@
 package dto
 
 type ReqMsg struct {
-	Action MsgType
-	Data   interface{}
+	Action  MsgType     `json:"action"`
+	Payload interface{} `json:"payload"`
 }
