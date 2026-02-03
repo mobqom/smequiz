@@ -7,5 +7,5 @@ const (
 	JOIN_ROOM    ActionType = "JOIN_ROOM"
 	LEAVE_ROOM   ActionType = "LEAVE_ROOM"
 	PLAYERS_LIST ActionType = "PLAYERS_LIST"
-	SET_NAME                = "SET_NAME"
+	SET_NAME     ActionType = "SET_NAME"
 )
