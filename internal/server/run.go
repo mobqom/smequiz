@@ -11,8 +11,9 @@ import (
 )
 
 func Run(cfg *config.AppConfig) {
-	fmt.Printf("Starting server on port %s\n", cfg.Port)
+	url := fmt.Sprintf("%s:%s", cfg.Host, cfg.Port)
+	fmt.Printf("Starting server on %s\n", url)
 	m := domain.NewRoomManager()
 	router.Init(m)
-	log.Fatal(http.ListenAndServe(fmt.Sprintf("%s:%s", cfg.Host, cfg.Port), nil))
+	log.Fatal(http.ListenAndServe(url, nil))
 }
