@@ -25,7 +25,7 @@ func TestConnection(t *testing.T) {
 		go func() {
 			dialer := websocket.DefaultDialer
 			conn, _, err := dialer.Dial(
-				fmt.Sprintf("ws://%s:%s/game", cfg.Host, cfg.Port), nil)
+				fmt.Sprintf("ws://%s:%s/game-actions", cfg.Host, cfg.Port), nil)
 			if err != nil {
 				t.Logf("Connection error: %v", err)
 				return

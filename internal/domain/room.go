@@ -8,16 +8,19 @@ type Room interface {
 	PlayersCount() int
 	GetPlayers() map[string]Player
 	SendMsg(msg *dto.Msg)
+	SetScreen(screen dto.Screen)
 }
 type room struct {
 	id      string
 	players map[string]Player
+	screen  dto.Screen
 }
 
 func NewRoom(id string) Room {
 	return &room{
 		id:      id,
 		players: make(map[string]Player),
+		screen:  dto.WAITING_SCREEN,
 	}
 }
 func (room *room) Join(player Player) {
@@ -37,4 +40,10 @@ func (room *room) SendMsg(msg *dto.Msg) {
 	for _, c := range room.players {
 		c.SendMsg(msg)
 	}
+}
+func (room *room) SetScreen(screen dto.Screen) {
+	room.SendMsg(&dto.Msg{
+		Action:  dto.SET_SCREEN,
+		Payload: screen,
+	})
 }
