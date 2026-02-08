@@ -19,7 +19,7 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
-func readPlayerMessages(p domain.Player, m domain.RoomManager) {
+func readPlayerMessages(p *domain.Player, m *domain.RoomManager) {
 	defer func() {
 		roomActions.DeleteEmptyRoom(p, m)
 		fmt.Println("Client left the server", p.GetId())
@@ -44,7 +44,7 @@ func readPlayerMessages(p domain.Player, m domain.RoomManager) {
 	}
 }
 
-func handleWs(m domain.RoomManager, w http.ResponseWriter, r *http.Request) {
+func handleWs(m *domain.RoomManager, w http.ResponseWriter, r *http.Request) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		fmt.Println("Error upgrading to websocket:", err)

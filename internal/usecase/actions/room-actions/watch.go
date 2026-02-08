@@ -8,7 +8,7 @@ import (
 	"github.com/ibezgin/mobqom-smequiz/internal/utils"
 )
 
-func Watch(m domain.RoomManager, p domain.Player, reqMsg *dto.Msg) {
+func Watch(m *domain.RoomManager, p *domain.Player, reqMsg *dto.Msg) {
 	switch reqMsg.Action {
 	case dto.CREATE_ROOM:
 		if playerRoomId := p.GetRoomId(); playerRoomId != "" {
@@ -55,7 +55,7 @@ func Watch(m domain.RoomManager, p domain.Player, reqMsg *dto.Msg) {
 	}
 }
 
-func DeleteEmptyRoom(p domain.Player, m domain.RoomManager) {
+func DeleteEmptyRoom(p *domain.Player, m *domain.RoomManager) {
 	roomId := p.GetRoomId()
 	room, err := m.GetRoom(roomId)
 	if err != nil {
@@ -69,7 +69,7 @@ func DeleteEmptyRoom(p domain.Player, m domain.RoomManager) {
 	}
 }
 
-func sendPlayersList(room domain.Room) {
+func sendPlayersList(room *domain.Room) {
 	var list []string
 	clients := room.GetPlayers()
 	for _, c := range clients {
@@ -79,7 +79,7 @@ func sendPlayersList(room domain.Room) {
 	room.SendMsg(&dto.Msg{Action: dto.PLAYERS_LIST, Payload: list})
 }
 
-func sendCurrentRoom(p domain.Player) {
+func sendCurrentRoom(p *domain.Player) {
 	p.SendMsg(
 		&dto.Msg{
 			Action:  dto.CURRENT_ROOM,

@@ -2,48 +2,40 @@ package domain
 
 import "github.com/ibezgin/mobqom-smequiz/internal/dto"
 
-type Room interface {
-	Join(player Player)
-	Leave(player Player)
-	PlayersCount() int
-	GetPlayers() map[string]Player
-	SendMsg(msg *dto.Msg)
-	SetScreen(screen dto.Screen)
-}
-type room struct {
+type Room struct {
 	id      string
-	players map[string]Player
+	players map[string]*Player
 	screen  dto.Screen
 }
 
-func NewRoom(id string) Room {
-	return &room{
+func NewRoom(id string) *Room {
+	return &Room{
 		id:      id,
-		players: make(map[string]Player),
+		players: make(map[string]*Player),
 		screen:  dto.WAITING_SCREEN,
 	}
 }
-func (room *room) Join(player Player) {
+func (room *Room) Join(player *Player) {
 	room.players[player.GetId()] = player
 }
 
-func (room *room) Leave(player Player) {
+func (room *Room) Leave(player *Player) {
 	delete(room.players, player.GetId())
 }
-func (room *room) PlayersCount() int {
+func (room *Room) PlayersCount() int {
 	return len(room.players)
 }
-func (room *room) GetPlayers() map[string]Player {
-	return room.players
-}
-func (room *room) SendMsg(msg *dto.Msg) {
+func (room *Room) SendMsg(msg *dto.Msg) {
 	for _, c := range room.players {
 		c.SendMsg(msg)
 	}
 }
-func (room *room) SetScreen(screen dto.Screen) {
+func (room *Room) SetScreen(screen dto.Screen) {
 	room.SendMsg(&dto.Msg{
 		Action:  dto.SET_SCREEN,
 		Payload: screen,
 	})
+}
+func (room *Room) GetPlayers() map[string]*Player {
+	return room.players
 }

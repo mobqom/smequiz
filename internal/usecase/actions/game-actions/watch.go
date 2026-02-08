@@ -8,7 +8,7 @@ import (
 	"github.com/ibezgin/mobqom-smequiz/internal/dto"
 )
 
-func Watch(reqMsg *dto.Msg, p domain.Player, m domain.RoomManager) {
+func Watch(reqMsg *dto.Msg, p *domain.Player, m *domain.RoomManager) {
 	switch reqMsg.Action {
 	case dto.START_GAME:
 		room, err := m.GetRoom(p.GetRoomId())

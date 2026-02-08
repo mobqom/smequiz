@@ -7,7 +7,7 @@ import (
 	"github.com/ibezgin/mobqom-smequiz/internal/dto"
 )
 
-func Watch(msg *dto.Msg, p domain.Player) {
+func Watch(msg *dto.Msg, p *domain.Player) {
 	switch msg.Action {
 	case dto.SET_NAME:
 		name := msg.Payload.(string)

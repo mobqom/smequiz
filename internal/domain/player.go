@@ -8,45 +8,37 @@ import (
 	"github.com/ibezgin/mobqom-smequiz/internal/dto"
 )
 
-type Player interface {
-	SetRoomId(roomId string)
-	GetRoomId() string
-	SetName(name string)
-	GetConn() *websocket.Conn
-	GetId() string
-	SendMsg(msg *dto.Msg)
-}
-type player struct {
-	Conn   *websocket.Conn
-	Id     string
-	Name   string
-	RoomId string
+type Player struct {
+	conn   *websocket.Conn
+	id     string
+	name   string
+	roomId string
 	mu     sync.Mutex
 }
 
-func NewPlayer(conn *websocket.Conn, id string) Player {
-	return &player{
-		Conn: conn,
-		Id:   id,
-		Name: "",
+func NewPlayer(conn *websocket.Conn, id string) *Player {
+	return &Player{
+		conn: conn,
+		id:   id,
+		name: "",
 	}
 }
-func (p *player) SetRoomId(roomId string) {
-	p.RoomId = roomId
+func (p *Player) SetRoomId(roomId string) {
+	p.roomId = roomId
 }
-func (p *player) GetRoomId() string {
-	return p.RoomId
+func (p *Player) GetRoomId() string {
+	return p.roomId
 }
-func (p *player) SetName(name string) {
-	p.Name = name
+func (p *Player) SetName(name string) {
+	p.name = name
 }
-func (p *player) GetConn() *websocket.Conn {
-	return p.Conn
+func (p *Player) GetConn() *websocket.Conn {
+	return p.conn
 }
-func (p *player) GetId() string {
-	return p.Id
+func (p *Player) GetId() string {
+	return p.id
 }
-func (p *player) SendMsg(msg *dto.Msg) {
+func (p *Player) SendMsg(msg *dto.Msg) {
 	p.mu.Lock()
 	err := p.GetConn().WriteJSON(msg)
 	p.mu.Unlock()
