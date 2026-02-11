@@ -3,10 +3,10 @@ package game_actions
 import (
 	"log"
 	"net/http"
-	"time"
 
 	"github.com/ibezgin/mobqom-smequiz/internal/domain"
 	"github.com/ibezgin/mobqom-smequiz/internal/dto"
+	"github.com/ibezgin/mobqom-smequiz/internal/utils"
 )
 
 func Watch(r *http.Request, reqMsg *dto.Msg, p *domain.Player, m *domain.RoomManager) {
@@ -17,12 +17,27 @@ func Watch(r *http.Request, reqMsg *dto.Msg, p *domain.Player, m *domain.RoomMan
 			log.Printf("room does not exist %s\n", err)
 		}
 		room.SetScreen(r, dto.TIMER_SCREEN)
-		go func() {
-			for i := 3; i > 0; i-- {
-				msg := &dto.Msg{Action: dto.TIMER_TIME, Payload: i}
-				room.SendMsg(r, msg)
-				time.Sleep(1 * time.Second)
+		for v := range utils.Timer(3) {
+			p := &dto.TimerPayload{Value: v, Done: false}
+			if v == 0 {
+				p.Done = true
 			}
-		}()
+			room.SendMsg(r, &dto.Msg{Action: dto.TIMER_TIME, Payload: p})
+		}
+		plist := room.GetPlayersSnapshot()
+		questions := domain.InitQuestion()
+		for ki, pi := range plist {
+			for kj, pj := range plist {
+				if ki != kj {
+					randQuestion := questions[utils.RandRangeInt(0, len(questions))]
+					stage := &domain.Stage{
+						Question: &randQuestion,
+						Players:  map[string]*domain.Player{pi.GetId(): pi, pj.GetId(): pj},
+					}
+					room.AddStage(stage)
+				}
+			}
+		}
+
 	}
 }

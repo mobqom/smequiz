@@ -11,6 +11,7 @@ type Room struct {
 	id      string
 	players map[string]*Player
 	screen  dto.Screen
+	stage   []*Stage
 	mu      sync.RWMutex
 }
 
@@ -78,12 +79,8 @@ func (room *Room) GetPlayers() map[string]*Player {
 	return room.players
 }
 
-// GetPlayer возвращает игрока по ID
-func (room *Room) GetPlayer(id string) (*Player, bool) {
-	room.mu.RLock()
-	defer room.mu.RUnlock()
-	player, exists := room.players[id]
-	return player, exists
+func (room *Room) AddStage(stage *Stage) {
+	room.mu.Lock()
+	defer room.mu.Unlock()
+	room.stage = append(room.stage, stage)
 }
-
-// Remove метод GetPlayers, так как он небезопасен

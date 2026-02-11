@@ -20,10 +20,8 @@ func Run(cfg *config.AppConfig) {
 			router.HandleWebSocket(m, w, r)
 		}),
 	}
-	go func() {
-		log.Println("Сервер запущен на :8080")
-		if err := server.ListenAndServe(); err != http.ErrServerClosed {
-			log.Fatal("ListenAndServe:", err)
-		}
-	}()
+	log.Printf("Сервер запущен на %v", addr)
+	if err := server.ListenAndServe(); err != http.ErrServerClosed {
+		log.Fatal("ListenAndServe:", err)
+	}
 }
