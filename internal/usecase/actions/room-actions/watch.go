@@ -1,55 +1,56 @@
 package roomActions
 
 import (
-	"fmt"
+	"log"
+	"net/http"
 
 	"github.com/ibezgin/mobqom-smequiz/internal/domain"
 	"github.com/ibezgin/mobqom-smequiz/internal/dto"
 	"github.com/ibezgin/mobqom-smequiz/internal/utils"
 )
 
-func Watch(m *domain.RoomManager, p *domain.Player, reqMsg *dto.Msg) {
+func Watch(r *http.Request, reqMsg *dto.Msg, m *domain.RoomManager, p *domain.Player) {
 	switch reqMsg.Action {
 	case dto.CREATE_ROOM:
 		if playerRoomId := p.GetRoomId(); playerRoomId != "" {
-			fmt.Printf("player already has room\n")
+			log.Printf("player already has room\n")
 			return
 		}
 		roomId := utils.GenerateId("room")
 		room, err := m.CreateRoom(roomId)
 		if err != nil {
-			fmt.Printf("error with create room; %s\n", err)
+			log.Printf("error with create room; %s\n", err)
 			return
 		}
 		p.SetRoomId(roomId)
 		room.Join(p)
-		fmt.Printf("%s: created room %s\n", p.GetId(), roomId)
-		go sendPlayersList(room)
-		go sendCurrentRoom(p)
+		log.Printf("%s: created room %s\n", p.GetId(), roomId)
+		go sendPlayersList(r, room)
+		go sendCurrentRoom(r, p)
 	case dto.JOIN_ROOM:
 		roomId := reqMsg.Payload.(string)
 		room, err := m.GetRoom(roomId)
 		if err != nil {
-			fmt.Printf("%s: room does not exist %s\n", roomId, err)
+			log.Printf("%s: room does not exist %s\n", roomId, err)
 			return
 		}
 		p.SetRoomId(roomId)
 		room.Join(p)
-		go sendPlayersList(room)
-		go sendCurrentRoom(p)
-		fmt.Printf("player %s has bean joined to to room %s\n", p.GetId(), roomId)
+		go sendPlayersList(r, room)
+		go sendCurrentRoom(r, p)
+		log.Printf("player %s has bean joined to to room %s\n", p.GetId(), roomId)
 	case dto.LEAVE_ROOM:
 		roomId := p.GetRoomId()
 		room, err := m.GetRoom(roomId)
 		if err != nil {
-			fmt.Printf("room does not exist %s\n", err)
+			log.Printf("room does not exist %s\n", err)
 			return
 		}
 		room.Leave(p)
-		go sendPlayersList(room)
+		go sendPlayersList(r, room)
 		DeleteEmptyRoom(p, m)
-		go sendCurrentRoom(p)
-		fmt.Printf("player %s left the room %s\n", p.GetId(), p.GetRoomId())
+		go sendCurrentRoom(r, p)
+		log.Printf("player %s left the room %s\n", p.GetId(), p.GetRoomId())
 		p.SetRoomId("")
 
 	default:
@@ -66,22 +67,22 @@ func DeleteEmptyRoom(p *domain.Player, m *domain.RoomManager) {
 	playersCount := room.PlayersCount()
 	if playersCount == 0 {
 		m.DeleteRoom(roomId)
-		fmt.Printf("empty room has been deleted %s\n", roomId)
+		log.Printf("empty room has been deleted %s\n", roomId)
 	}
 }
 
-func sendPlayersList(room *domain.Room) {
+func sendPlayersList(r *http.Request, room *domain.Room) {
 	var list []string
 	players := room.GetPlayersSnapshot()
 	for _, c := range players {
 		list = append(list, c.GetId())
 
 	}
-	room.SendMsg(&dto.Msg{Action: dto.PLAYERS_LIST, Payload: list})
+	room.SendMsg(r, &dto.Msg{Action: dto.PLAYERS_LIST, Payload: list})
 }
 
-func sendCurrentRoom(p *domain.Player) {
-	p.SendMsg(
+func sendCurrentRoom(r *http.Request, p *domain.Player) {
+	p.SendMsg(r,
 		&dto.Msg{
 			Action:  dto.CURRENT_ROOM,
 			Payload: p.GetRoomId(),

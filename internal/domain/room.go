@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"net/http"
 	"sync"
 
 	"github.com/ibezgin/mobqom-smequiz/internal/dto"
@@ -34,7 +35,7 @@ func (room *Room) Leave(player *Player) {
 func (room *Room) PlayersCount() int {
 	return len(room.players)
 }
-func (room *Room) SendMsg(msg *dto.Msg) {
+func (room *Room) SendMsg(r *http.Request, msg *dto.Msg) {
 	// Блокируем чтение карты на время итерации
 	room.mu.RLock()
 	// Копируем игроков в слайс, чтобы не держать блокировку во время отправки
@@ -46,15 +47,17 @@ func (room *Room) SendMsg(msg *dto.Msg) {
 
 	// Отправляем сообщения без блокировки
 	for _, p := range players {
-		p.SendMsg(msg)
+		p.SendMsg(r, msg)
 	}
 }
 
-func (room *Room) SetScreen(screen dto.Screen) {
-	room.SendMsg(&dto.Msg{
-		Action:  dto.SET_SCREEN,
-		Payload: screen,
-	})
+func (room *Room) SetScreen(r *http.Request, screen dto.Screen) {
+	room.SendMsg(
+		r,
+		&dto.Msg{
+			Action:  dto.SET_SCREEN,
+			Payload: screen,
+		})
 }
 
 // GetPlayersSnapshot возвращает копию карты игроков
@@ -68,6 +71,11 @@ func (room *Room) GetPlayersSnapshot() map[string]*Player {
 		playersCopy[id] = player
 	}
 	return playersCopy
+}
+func (room *Room) GetPlayers() map[string]*Player {
+	room.mu.Lock()
+	defer room.mu.Unlock()
+	return room.players
 }
 
 // GetPlayer возвращает игрока по ID

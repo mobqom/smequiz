@@ -1,10 +1,12 @@
 package domain
 
 import (
-	"fmt"
+	"log"
+	"net/http"
 	"sync"
 
-	"github.com/gorilla/websocket"
+	"github.com/coder/websocket"
+	"github.com/coder/websocket/wsjson"
 	"github.com/ibezgin/mobqom-smequiz/internal/dto"
 )
 
@@ -38,11 +40,11 @@ func (p *Player) GetConn() *websocket.Conn {
 func (p *Player) GetId() string {
 	return p.id
 }
-func (p *Player) SendMsg(msg *dto.Msg) {
+func (p *Player) SendMsg(r *http.Request, msg *dto.Msg) {
 	p.mu.Lock()
-	err := p.GetConn().WriteJSON(msg)
+	err := wsjson.Write(r.Context(), p.GetConn(), msg)
 	p.mu.Unlock()
 	if err != nil {
-		fmt.Printf("%s: send msg err: %v\n", p.GetId(), err)
+		log.Printf("%s: send msg err: %v", p.GetId(), err)
 	}
 }
