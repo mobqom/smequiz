@@ -42,15 +42,16 @@ func Watch(m *domain.RoomManager, p *domain.Player, reqMsg *dto.Msg) {
 		roomId := p.GetRoomId()
 		room, err := m.GetRoom(roomId)
 		if err != nil {
-			fmt.Printf("room does not exist\n")
+			fmt.Printf("room does not exist %s\n", err)
 			return
 		}
 		room.Leave(p)
-		p.SetRoomId("")
 		go sendPlayersList(room)
 		DeleteEmptyRoom(p, m)
 		go sendCurrentRoom(p)
-		fmt.Printf("player %s left the room", p.GetRoomId())
+		fmt.Printf("player %s left the room %s\n", p.GetId(), p.GetRoomId())
+		p.SetRoomId("")
+
 	default:
 	}
 }
@@ -71,8 +72,8 @@ func DeleteEmptyRoom(p *domain.Player, m *domain.RoomManager) {
 
 func sendPlayersList(room *domain.Room) {
 	var list []string
-	clients := room.GetPlayers()
-	for _, c := range clients {
+	players := room.GetPlayersSnapshot()
+	for _, c := range players {
 		list = append(list, c.GetId())
 
 	}
