@@ -1,9 +1,7 @@
 package questionActions
 
 import (
-	"encoding/json"
 	"fmt"
-	"log"
 	"net/http"
 	"sync"
 
@@ -11,6 +9,7 @@ import (
 	"github.com/ibezgin/mobqom-smequiz/internal/domain"
 	"github.com/ibezgin/mobqom-smequiz/internal/dto"
 	game_actions "github.com/ibezgin/mobqom-smequiz/internal/usecase/actions/game-actions"
+	"github.com/ibezgin/mobqom-smequiz/internal/utils"
 )
 
 func Watch(r *http.Request, reqMsg dto.Msg, m *domain.RoomManager, p *domain.Player) {
@@ -19,7 +18,7 @@ func Watch(r *http.Request, reqMsg dto.Msg, m *domain.RoomManager, p *domain.Pla
 		var mu sync.Mutex
 		validate := validator.New()
 		var data dto.AnswerPayload
-		err := preparePayloadToStruct(reqMsg.Payload, &data)
+		err := utils.PreparePayloadToStruct(reqMsg.Payload, &data)
 		if err != nil {
 			fmt.Printf("%+v\n", err)
 			return
@@ -41,25 +40,11 @@ func Watch(r *http.Request, reqMsg dto.Msg, m *domain.RoomManager, p *domain.Pla
 		slist := room.Stages()
 		swa := game_actions.FindStageWithoutAnswer(slist, p)
 		if swa == nil {
-			p.SendMsg(r.Context(), dto.Msg{Action: dto.SET_SCREEN, Payload: dto.WAITING_SCREEN})
+			p.SendMsg(r.Context(), dto.Msg{Action: dto.SET_SCREEN, Payload: dto.QUESTION_RESULT_SCREEN})
 			return
 		}
 		payload := dto.QuestionPayload{Question: swa.Question.Text, StageId: swa.Id}
 
 		p.SendMsg(r.Context(), dto.Msg{Action: dto.SET_QUESTION, Payload: payload})
 	}
-}
-
-func preparePayloadToStruct[T any](payload interface{}, data *T) error {
-	jsonData, err := json.Marshal(payload)
-	if err != nil {
-		log.Printf("Error marshaling payload: %v", err)
-		return err
-	}
-	err = json.Unmarshal(jsonData, &data)
-	if err != nil {
-		log.Printf("Error unmarshaling to AnswerPayload: %v", err)
-		return err
-	}
-	return nil
 }

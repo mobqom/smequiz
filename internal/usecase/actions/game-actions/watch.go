@@ -2,6 +2,7 @@ package game_actions
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 
@@ -66,7 +67,7 @@ func getPlayersCount(pCoupleIds []string, pId string) int {
 
 func InitRoomStages(playersList map[string]*domain.Player, qList []domain.Question, room *domain.Room) []*domain.Stage {
 	pCoupleIds := make([]string, 0, len(playersList))
-
+	fmt.Println(pCoupleIds)
 	for k1, p1 := range playersList {
 		for k2, p2 := range playersList {
 			if k1 == k2 {
@@ -74,7 +75,7 @@ func InitRoomStages(playersList map[string]*domain.Player, qList []domain.Questi
 			}
 			countOfPlayers := getPlayersCount(pCoupleIds, k1)
 			if countOfPlayers >= MaxPlayersInStage {
-				continue
+				break
 			}
 			q := qList[utils.RandRangeInt(0, len(qList)-1)]
 			pCoupleIds = append(pCoupleIds, k1, k2)
@@ -88,14 +89,14 @@ func InitRoomStages(playersList map[string]*domain.Player, qList []domain.Questi
 	return room.Stages()
 }
 
+// FindStageWithoutAnswer Если в стейдже есть плеер, но нет ответа от него возвращает стейдж
 func FindStageWithoutAnswer(stage []*domain.Stage, p *domain.Player) *domain.Stage {
 	for _, s := range stage {
 		_, existP := s.Players[p.Id()]
 		_, existAns := s.Answer[p.Id()]
-		if existP && existAns {
-			continue
+		if existP && !existAns {
+			return s
 		}
-		return s
 	}
 	return nil
 }
