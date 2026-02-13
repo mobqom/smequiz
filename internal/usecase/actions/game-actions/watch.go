@@ -24,8 +24,8 @@ func Watch(r *http.Request, reqMsg dto.Msg, p *domain.Player, m *domain.RoomMana
 			log.Printf("room does not exist %s\n", err)
 		}
 		room.SetScreen(r.Context(), dto.TIMER_SCREEN)
-		plist := room.GetPlayersSnapshot()
-		
+		plist := room.PlayersSnapshot()
+
 		go func() {
 			qList := domain.InitQuestion()
 

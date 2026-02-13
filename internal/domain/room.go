@@ -37,7 +37,7 @@ func (room *Room) PlayersCount() int {
 	return len(room.players)
 }
 func (room *Room) SendMsg(ctx context.Context, msg dto.Msg) {
-	pls := room.GetPlayersSnapshot()
+	pls := room.PlayersSnapshot()
 	// Отправляем сообщения без блокировки
 	for _, p := range pls {
 		p.SendMsg(ctx, msg)
@@ -45,14 +45,14 @@ func (room *Room) SendMsg(ctx context.Context, msg dto.Msg) {
 }
 
 func (room *Room) SetScreen(ctx context.Context, screen dto.Screen) {
-	ps := room.GetPlayersSnapshot()
+	ps := room.PlayersSnapshot()
 	for _, p := range ps {
 		p.SetScreen(ctx, screen)
 	}
 }
 
-// GetPlayersSnapshot возвращает копию карты игроков
-func (room *Room) GetPlayersSnapshot() map[string]*Player {
+// PlayersSnapshot возвращает копию карты игроков
+func (room *Room) PlayersSnapshot() map[string]*Player {
 	room.mu.RLock()
 	defer room.mu.RUnlock()
 

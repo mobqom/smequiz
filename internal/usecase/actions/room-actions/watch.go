@@ -74,7 +74,7 @@ func DeleteEmptyRoom(p *domain.Player, m *domain.RoomManager) {
 
 func sendPlayersList(r *http.Request, room *domain.Room) {
 	var list []string
-	players := room.GetPlayersSnapshot()
+	players := room.PlayersSnapshot()
 	for _, c := range players {
 		list = append(list, c.Id())
 
