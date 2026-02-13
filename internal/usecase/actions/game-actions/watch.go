@@ -9,7 +9,11 @@ import (
 	"github.com/ibezgin/mobqom-smequiz/internal/utils"
 )
 
-func Watch(r *http.Request, reqMsg *dto.Msg, p *domain.Player, m *domain.RoomManager) {
+const (
+	MaxPlayersInStage int = 2
+)
+
+func Watch(r *http.Request, reqMsg dto.Msg, p *domain.Player, m *domain.RoomManager) {
 	switch reqMsg.Action {
 	case dto.START_GAME:
 		room, err := m.GetRoom(p.GetRoomId())
@@ -22,36 +26,25 @@ func Watch(r *http.Request, reqMsg *dto.Msg, p *domain.Player, m *domain.RoomMan
 			if v == 0 {
 				p.Done = true
 			}
-			room.SendMsg(r, &dto.Msg{Action: dto.TIMER_TIME, Payload: p})
+			room.SendMsg(r, dto.Msg{Action: dto.TIMER_TIME, Payload: p})
 		}
 		plist := room.GetPlayersSnapshot()
-		pCoupleIds := make([]string, 0)
 		qList := domain.InitQuestion()
-		for k1, p1 := range plist {
-			for k2, p2 := range plist {
-				if k1 == k2 {
-					continue
-				}
-				cOfP := countOfPlayers(pCoupleIds, k1)
-				if cOfP >= 2 {
-					continue
-				}
-				q := qList[utils.RandRangeInt(0, len(qList)-1)]
-				pCoupleIds = append(pCoupleIds, k1)
-				room.AddStage(&domain.Stage{Players: map[string]*domain.Player{k1: p1, k2: p2}, Question: &q})
+
+		stages := InitRoomStages(plist, qList, room)
+		for _, p := range plist {
+			stg := findStageWithoutAnswer(stages, p)
+			if stg == nil {
+				continue
 			}
-		}
-		stages := room.GetStage()
-		for _, stage := range stages {
-			for _, p := range stage.Players {
-				p.SendMsg(r, &dto.Msg{Action: dto.SET_SCREEN, Payload: dto.QUESTION_SCREEN})
-				p.SendMsg(r, &dto.Msg{Action: dto.SET_QUESTION, Payload: stage.Question})
-			}
+			payload := dto.QuestionPayload{Question: stg.Question.Text, StageId: stg.Id}
+			p.SendMsg(r, dto.Msg{Action: dto.SET_SCREEN, Payload: dto.QUESTION_SCREEN})
+			p.SendMsg(r, dto.Msg{Action: dto.SET_QUESTION, Payload: payload})
 		}
 	}
 }
 
-func countOfPlayers(pCoupleIds []string, pId string) int {
+func getPlayersCount(pCoupleIds []string, pId string) int {
 	result := 0
 	for _, v := range pCoupleIds {
 		if v == pId {
@@ -59,4 +52,40 @@ func countOfPlayers(pCoupleIds []string, pId string) int {
 		}
 	}
 	return result
+}
+
+func InitRoomStages(playersList map[string]*domain.Player, qList []domain.Question, room *domain.Room) []*domain.Stage {
+	pCoupleIds := make([]string, 0, len(playersList))
+
+	for k1, p1 := range playersList {
+		for k2, p2 := range playersList {
+			if k1 == k2 {
+				continue
+			}
+			countOfPlayers := getPlayersCount(pCoupleIds, k1)
+			if countOfPlayers >= MaxPlayersInStage {
+				continue
+			}
+			q := qList[utils.RandRangeInt(0, len(qList)-1)]
+			pCoupleIds = append(pCoupleIds, k1, k2)
+			room.AddStage(&domain.Stage{
+				Players:  map[string]*domain.Player{k1: p1, k2: p2},
+				Question: &q,
+				Id:       utils.GenerateId("stage")})
+		}
+	}
+
+	return room.GetStage()
+}
+
+func findStageWithoutAnswer(stage []*domain.Stage, p *domain.Player) *domain.Stage {
+	for _, s := range stage {
+		_, existP := s.Players[p.GetId()]
+		_, existAns := s.Answer[p.GetId()]
+		if existP && existAns {
+			continue
+		}
+		return s
+	}
+	return nil
 }

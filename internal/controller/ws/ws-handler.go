@@ -18,9 +18,9 @@ func readPlayerMessages(r *http.Request, p *domain.Player, m *domain.RoomManager
 		roomActions.DeleteEmptyRoom(p, m)
 	}()
 	for {
-		msg := new(dto.Msg)
+		var msg dto.Msg
 
-		err := wsjson.Read(r.Context(), p.GetConn(), msg)
+		err := wsjson.Read(r.Context(), p.GetConn(), &msg)
 		if err != nil {
 			// Нормальное закрытие
 			if websocket.CloseStatus(err) == websocket.StatusNormalClosure ||

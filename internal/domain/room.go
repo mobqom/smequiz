@@ -36,7 +36,7 @@ func (room *Room) Leave(player *Player) {
 func (room *Room) PlayersCount() int {
 	return len(room.players)
 }
-func (room *Room) SendMsg(r *http.Request, msg *dto.Msg) {
+func (room *Room) SendMsg(r *http.Request, msg dto.Msg) {
 	// Блокируем чтение карты на время итерации
 	room.mu.RLock()
 	// Копируем игроков в слайс, чтобы не держать блокировку во время отправки
@@ -55,7 +55,7 @@ func (room *Room) SendMsg(r *http.Request, msg *dto.Msg) {
 func (room *Room) SetScreen(r *http.Request, screen dto.Screen) {
 	room.SendMsg(
 		r,
-		&dto.Msg{
+		dto.Msg{
 			Action:  dto.SET_SCREEN,
 			Payload: screen,
 		})

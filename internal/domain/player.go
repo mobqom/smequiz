@@ -40,11 +40,10 @@ func (p *Player) GetConn() *websocket.Conn {
 func (p *Player) GetId() string {
 	return p.id
 }
-func (p *Player) SendMsg(r *http.Request, msg *dto.Msg) {
-	p.mu.Lock()
+func (p *Player) SendMsg(r *http.Request, msg dto.Msg) {
 	err := wsjson.Write(r.Context(), p.GetConn(), msg)
-	p.mu.Unlock()
 	if err != nil {
+
 		log.Printf("%s: send msg err: %v", p.GetId(), err)
 	}
 }

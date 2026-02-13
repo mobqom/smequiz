@@ -9,7 +9,7 @@ import (
 	"github.com/ibezgin/mobqom-smequiz/internal/utils"
 )
 
-func Watch(r *http.Request, reqMsg *dto.Msg, m *domain.RoomManager, p *domain.Player) {
+func Watch(r *http.Request, reqMsg dto.Msg, m *domain.RoomManager, p *domain.Player) {
 	switch reqMsg.Action {
 	case dto.CREATE_ROOM:
 		if playerRoomId := p.GetRoomId(); playerRoomId != "" {
@@ -78,12 +78,12 @@ func sendPlayersList(r *http.Request, room *domain.Room) {
 		list = append(list, c.GetId())
 
 	}
-	room.SendMsg(r, &dto.Msg{Action: dto.PLAYERS_LIST, Payload: list})
+	room.SendMsg(r, dto.Msg{Action: dto.PLAYERS_LIST, Payload: list})
 }
 
 func sendCurrentRoom(r *http.Request, p *domain.Player) {
 	p.SendMsg(r,
-		&dto.Msg{
+		dto.Msg{
 			Action:  dto.CURRENT_ROOM,
 			Payload: p.GetRoomId(),
 		},

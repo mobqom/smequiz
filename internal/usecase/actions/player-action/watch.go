@@ -8,12 +8,12 @@ import (
 	"github.com/ibezgin/mobqom-smequiz/internal/dto"
 )
 
-func Watch(r *http.Request, msg *dto.Msg, p *domain.Player) {
+func Watch(r *http.Request, msg dto.Msg, p *domain.Player) {
 	switch msg.Action {
 	case dto.SET_NAME:
 		name := msg.Payload.(string)
 		p.SetName(name)
-		p.SendMsg(r, &dto.Msg{Action: dto.SET_NAME, Payload: name})
+		p.SendMsg(r, dto.Msg{Action: dto.SET_NAME, Payload: name})
 		log.Printf("set name %s to %s", name, p.GetId())
 	default:
 	}
