@@ -1,8 +1,8 @@
 package domain
 
 import (
+	"context"
 	"log"
-	"net/http"
 	"sync"
 
 	"github.com/coder/websocket"
@@ -40,8 +40,8 @@ func (p *Player) GetConn() *websocket.Conn {
 func (p *Player) GetId() string {
 	return p.id
 }
-func (p *Player) SendMsg(r *http.Request, msg dto.Msg) {
-	err := wsjson.Write(r.Context(), p.GetConn(), msg)
+func (p *Player) SendMsg(ctx context.Context, msg dto.Msg) {
+	err := wsjson.Write(ctx, p.GetConn(), msg)
 	if err != nil {
 
 		log.Printf("%s: send msg err: %v", p.GetId(), err)

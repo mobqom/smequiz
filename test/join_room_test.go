@@ -49,11 +49,11 @@ func TestJoinRoom(t *testing.T) {
 		}
 	}()
 	roomId := <-roomIdCh
+	fmt.Println(roomId)
 	var wg sync.WaitGroup
 	for range connCount {
 		wg.Add(1)
 		go func() {
-
 			conn, _, err := websocket.Dial(ctx, url, nil)
 			defer func() {
 				err := wsjson.Write(ctx, conn, dto.Msg{Action: dto.LEAVE_ROOM})

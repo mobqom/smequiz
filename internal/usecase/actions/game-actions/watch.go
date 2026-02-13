@@ -1,6 +1,7 @@
 package game_actions
 
 import (
+	"context"
 	"log"
 	"net/http"
 
@@ -20,26 +21,29 @@ func Watch(r *http.Request, reqMsg dto.Msg, p *domain.Player, m *domain.RoomMana
 		if err != nil {
 			log.Printf("room does not exist %s\n", err)
 		}
-		room.SetScreen(r, dto.TIMER_SCREEN)
+		room.SetScreen(r.Context(), dto.TIMER_SCREEN)
 		for v := range utils.Timer(3) {
 			p := &dto.TimerPayload{Value: v, Done: false}
 			if v == 0 {
 				p.Done = true
 			}
-			room.SendMsg(r, dto.Msg{Action: dto.TIMER_TIME, Payload: p})
+			room.SendMsg(r.Context(), dto.Msg{Action: dto.TIMER_TIME, Payload: p})
 		}
 		plist := room.GetPlayersSnapshot()
 		qList := domain.InitQuestion()
 
 		stages := InitRoomStages(plist, qList, room)
+		ctx := context.Background()
 		for _, p := range plist {
-			stg := findStageWithoutAnswer(stages, p)
-			if stg == nil {
-				continue
-			}
-			payload := dto.QuestionPayload{Question: stg.Question.Text, StageId: stg.Id}
-			p.SendMsg(r, dto.Msg{Action: dto.SET_SCREEN, Payload: dto.QUESTION_SCREEN})
-			p.SendMsg(r, dto.Msg{Action: dto.SET_QUESTION, Payload: payload})
+			go func() {
+				stg := findStageWithoutAnswer(stages, p)
+				if stg == nil {
+					return
+				}
+				payload := dto.QuestionPayload{Question: stg.Question.Text, StageId: stg.Id}
+				p.SendMsg(ctx, dto.Msg{Action: dto.SET_SCREEN, Payload: dto.QUESTION_SCREEN})
+				p.SendMsg(ctx, dto.Msg{Action: dto.SET_QUESTION, Payload: payload})
+			}()
 		}
 	}
 }

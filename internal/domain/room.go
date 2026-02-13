@@ -1,7 +1,7 @@
 package domain
 
 import (
-	"net/http"
+	"context"
 	"sync"
 
 	"github.com/ibezgin/mobqom-smequiz/internal/dto"
@@ -36,25 +36,17 @@ func (room *Room) Leave(player *Player) {
 func (room *Room) PlayersCount() int {
 	return len(room.players)
 }
-func (room *Room) SendMsg(r *http.Request, msg dto.Msg) {
-	// Блокируем чтение карты на время итерации
-	room.mu.RLock()
-	// Копируем игроков в слайс, чтобы не держать блокировку во время отправки
-	players := make([]*Player, 0, len(room.players))
-	for _, p := range room.players {
-		players = append(players, p)
-	}
-	room.mu.RUnlock()
-
+func (room *Room) SendMsg(ctx context.Context, msg dto.Msg) {
+	pls := room.GetPlayersSnapshot()
 	// Отправляем сообщения без блокировки
-	for _, p := range players {
-		p.SendMsg(r, msg)
+	for _, p := range pls {
+		p.SendMsg(ctx, msg)
 	}
 }
 
-func (room *Room) SetScreen(r *http.Request, screen dto.Screen) {
+func (room *Room) SetScreen(ctx context.Context, screen dto.Screen) {
 	room.SendMsg(
-		r,
+		ctx,
 		dto.Msg{
 			Action:  dto.SET_SCREEN,
 			Payload: screen,

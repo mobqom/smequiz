@@ -1,6 +1,7 @@
 package roomActions
 
 import (
+	"context"
 	"log"
 	"net/http"
 
@@ -26,7 +27,7 @@ func Watch(r *http.Request, reqMsg dto.Msg, m *domain.RoomManager, p *domain.Pla
 		room.Join(p)
 		log.Printf("%s: created room %s\n", p.GetId(), roomId)
 		go sendPlayersList(r, room)
-		go sendCurrentRoom(r, p)
+		go sendCurrentRoom(r.Context(), p)
 	case dto.JOIN_ROOM:
 		roomId := reqMsg.Payload.(string)
 		room, err := m.GetRoom(roomId)
@@ -37,7 +38,7 @@ func Watch(r *http.Request, reqMsg dto.Msg, m *domain.RoomManager, p *domain.Pla
 		p.SetRoomId(roomId)
 		room.Join(p)
 		go sendPlayersList(r, room)
-		go sendCurrentRoom(r, p)
+		go sendCurrentRoom(r.Context(), p)
 		log.Printf("player %s has bean joined to to room %s\n", p.GetId(), roomId)
 	case dto.LEAVE_ROOM:
 		roomId := p.GetRoomId()
@@ -49,7 +50,7 @@ func Watch(r *http.Request, reqMsg dto.Msg, m *domain.RoomManager, p *domain.Pla
 		room.Leave(p)
 		go sendPlayersList(r, room)
 		DeleteEmptyRoom(p, m)
-		go sendCurrentRoom(r, p)
+		go sendCurrentRoom(r.Context(), p)
 		log.Printf("player %s left the room %s\n", p.GetId(), p.GetRoomId())
 		p.SetRoomId("")
 
@@ -78,11 +79,11 @@ func sendPlayersList(r *http.Request, room *domain.Room) {
 		list = append(list, c.GetId())
 
 	}
-	room.SendMsg(r, dto.Msg{Action: dto.PLAYERS_LIST, Payload: list})
+	room.SendMsg(r.Context(), dto.Msg{Action: dto.PLAYERS_LIST, Payload: list})
 }
 
-func sendCurrentRoom(r *http.Request, p *domain.Player) {
-	p.SendMsg(r,
+func sendCurrentRoom(ctx context.Context, p *domain.Player) {
+	p.SendMsg(ctx,
 		dto.Msg{
 			Action:  dto.CURRENT_ROOM,
 			Payload: p.GetRoomId(),
