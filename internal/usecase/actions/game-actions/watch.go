@@ -17,11 +17,19 @@ const (
 func Watch(r *http.Request, reqMsg dto.Msg, p *domain.Player, m *domain.RoomManager) {
 	switch reqMsg.Action {
 	case dto.START_GAME:
-		room, err := m.GetRoom(p.GetRoomId())
+		stagesCh := make(chan []*domain.Stage)
+		room, err := m.RoomById(p.RoomId())
 		if err != nil {
 			log.Printf("room does not exist %s\n", err)
 		}
 		room.SetScreen(r.Context(), dto.TIMER_SCREEN)
+		plist := room.GetPlayersSnapshot()
+
+		go func() {
+			qList := domain.InitQuestion()
+
+			stagesCh <- InitRoomStages(plist, qList, room)
+		}()
 		for v := range utils.Timer(3) {
 			p := &dto.TimerPayload{Value: v, Done: false}
 			if v == 0 {
@@ -29,14 +37,12 @@ func Watch(r *http.Request, reqMsg dto.Msg, p *domain.Player, m *domain.RoomMana
 			}
 			room.SendMsg(r.Context(), dto.Msg{Action: dto.TIMER_TIME, Payload: p})
 		}
-		plist := room.GetPlayersSnapshot()
-		qList := domain.InitQuestion()
 
-		stages := InitRoomStages(plist, qList, room)
 		ctx := context.Background()
+		stages := <-stagesCh
 		for _, p := range plist {
 			go func() {
-				stg := findStageWithoutAnswer(stages, p)
+				stg := FindStageWithoutAnswer(stages, p)
 				if stg == nil {
 					return
 				}
@@ -79,13 +85,13 @@ func InitRoomStages(playersList map[string]*domain.Player, qList []domain.Questi
 		}
 	}
 
-	return room.GetStage()
+	return room.Stages()
 }
 
-func findStageWithoutAnswer(stage []*domain.Stage, p *domain.Player) *domain.Stage {
+func FindStageWithoutAnswer(stage []*domain.Stage, p *domain.Player) *domain.Stage {
 	for _, s := range stage {
-		_, existP := s.Players[p.GetId()]
-		_, existAns := s.Answer[p.GetId()]
+		_, existP := s.Players[p.Id()]
+		_, existAns := s.Answer[p.Id()]
 		if existP && existAns {
 			continue
 		}

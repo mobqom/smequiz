@@ -14,7 +14,7 @@ func Watch(r *http.Request, msg dto.Msg, p *domain.Player) {
 		name := msg.Payload.(string)
 		p.SetName(name)
 		p.SendMsg(r.Context(), dto.Msg{Action: dto.SET_NAME, Payload: name})
-		log.Printf("set name %s to %s", name, p.GetId())
+		log.Printf("set name %s to %s", name, p.Id())
 	default:
 	}
 }

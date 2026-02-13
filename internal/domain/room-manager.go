@@ -26,7 +26,7 @@ func (rm *RoomManager) CreateRoom(roomId string) (*Room, error) {
 	return rm.rooms[roomId], nil
 }
 
-func (rm *RoomManager) GetRoom(roomId string) (*Room, error) {
+func (rm *RoomManager) RoomById(roomId string) (*Room, error) {
 	rm.mutex.Lock()
 	room, exists := rm.rooms[roomId]
 	rm.mutex.Unlock()

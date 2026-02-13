@@ -13,7 +13,7 @@ import (
 func Watch(r *http.Request, reqMsg dto.Msg, m *domain.RoomManager, p *domain.Player) {
 	switch reqMsg.Action {
 	case dto.CREATE_ROOM:
-		if playerRoomId := p.GetRoomId(); playerRoomId != "" {
+		if playerRoomId := p.RoomId(); playerRoomId != "" {
 			log.Printf("player already has room\n")
 			return
 		}
@@ -25,12 +25,12 @@ func Watch(r *http.Request, reqMsg dto.Msg, m *domain.RoomManager, p *domain.Pla
 		}
 		p.SetRoomId(roomId)
 		room.Join(p)
-		log.Printf("%s: created room %s\n", p.GetId(), roomId)
+		log.Printf("%s: created room %s\n", p.Id(), roomId)
 		go sendPlayersList(r, room)
 		go sendCurrentRoom(r.Context(), p)
 	case dto.JOIN_ROOM:
 		roomId := reqMsg.Payload.(string)
-		room, err := m.GetRoom(roomId)
+		room, err := m.RoomById(roomId)
 		if err != nil {
 			log.Printf("%s: room does not exist %s\n", roomId, err)
 			return
@@ -39,10 +39,10 @@ func Watch(r *http.Request, reqMsg dto.Msg, m *domain.RoomManager, p *domain.Pla
 		room.Join(p)
 		go sendPlayersList(r, room)
 		go sendCurrentRoom(r.Context(), p)
-		log.Printf("player %s has bean joined to to room %s\n", p.GetId(), roomId)
+		log.Printf("player %s has bean joined to to room %s\n", p.Id(), roomId)
 	case dto.LEAVE_ROOM:
-		roomId := p.GetRoomId()
-		room, err := m.GetRoom(roomId)
+		roomId := p.RoomId()
+		room, err := m.RoomById(roomId)
 		if err != nil {
 			log.Printf("room does not exist %s\n", err)
 			return
@@ -51,7 +51,7 @@ func Watch(r *http.Request, reqMsg dto.Msg, m *domain.RoomManager, p *domain.Pla
 		go sendPlayersList(r, room)
 		DeleteEmptyRoom(p, m)
 		go sendCurrentRoom(r.Context(), p)
-		log.Printf("player %s left the room %s\n", p.GetId(), p.GetRoomId())
+		log.Printf("player %s left the room %s\n", p.Id(), p.RoomId())
 		p.SetRoomId("")
 
 	default:
@@ -59,8 +59,8 @@ func Watch(r *http.Request, reqMsg dto.Msg, m *domain.RoomManager, p *domain.Pla
 }
 
 func DeleteEmptyRoom(p *domain.Player, m *domain.RoomManager) {
-	roomId := p.GetRoomId()
-	room, err := m.GetRoom(roomId)
+	roomId := p.RoomId()
+	room, err := m.RoomById(roomId)
 	if err != nil {
 		return
 	}
@@ -76,7 +76,7 @@ func sendPlayersList(r *http.Request, room *domain.Room) {
 	var list []string
 	players := room.GetPlayersSnapshot()
 	for _, c := range players {
-		list = append(list, c.GetId())
+		list = append(list, c.Id())
 
 	}
 	room.SendMsg(r.Context(), dto.Msg{Action: dto.PLAYERS_LIST, Payload: list})
@@ -86,7 +86,7 @@ func sendCurrentRoom(ctx context.Context, p *domain.Player) {
 	p.SendMsg(ctx,
 		dto.Msg{
 			Action:  dto.CURRENT_ROOM,
-			Payload: p.GetRoomId(),
+			Payload: p.RoomId(),
 		},
 	)
 }

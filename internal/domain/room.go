@@ -11,7 +11,7 @@ type Room struct {
 	id      string
 	players map[string]*Player
 	screen  dto.Screen
-	stage   []*Stage
+	stages  []*Stage
 	mu      sync.RWMutex
 }
 
@@ -25,13 +25,13 @@ func NewRoom(id string) *Room {
 func (room *Room) Join(player *Player) {
 	room.mu.Lock()
 	defer room.mu.Unlock()
-	room.players[player.GetId()] = player
+	room.players[player.Id()] = player
 }
 
 func (room *Room) Leave(player *Player) {
 	room.mu.Lock()
 	defer room.mu.Unlock()
-	delete(room.players, player.GetId())
+	delete(room.players, player.Id())
 }
 func (room *Room) PlayersCount() int {
 	return len(room.players)
@@ -74,11 +74,20 @@ func (room *Room) GetPlayers() map[string]*Player {
 func (room *Room) AddStage(stage *Stage) {
 	room.mu.Lock()
 	defer room.mu.Unlock()
-	room.stage = append(room.stage, stage)
+	room.stages = append(room.stages, stage)
 }
 
-func (room *Room) GetStage() []*Stage {
+func (room *Room) Stages() []*Stage {
 	room.mu.RLock()
 	defer room.mu.RUnlock()
-	return room.stage
+	return room.stages
+}
+
+func (room *Room) GetStageById(id string) *Stage {
+	for _, stage := range room.stages {
+		if stage.Id == id {
+			return stage
+		}
+	}
+	return nil
 }

@@ -28,22 +28,22 @@ func NewPlayer(conn *websocket.Conn, id string) *Player {
 func (p *Player) SetRoomId(roomId string) {
 	p.roomId = roomId
 }
-func (p *Player) GetRoomId() string {
+func (p *Player) RoomId() string {
 	return p.roomId
 }
 func (p *Player) SetName(name string) {
 	p.name = name
 }
-func (p *Player) GetConn() *websocket.Conn {
+func (p *Player) Conn() *websocket.Conn {
 	return p.conn
 }
-func (p *Player) GetId() string {
+func (p *Player) Id() string {
 	return p.id
 }
 func (p *Player) SendMsg(ctx context.Context, msg dto.Msg) {
-	err := wsjson.Write(ctx, p.GetConn(), msg)
+	err := wsjson.Write(ctx, p.Conn(), msg)
 	if err != nil {
 
-		log.Printf("%s: send msg err: %v", p.GetId(), err)
+		log.Printf("%s: send msg err: %v", p.Id(), err)
 	}
 }
