@@ -45,12 +45,10 @@ func (room *Room) SendMsg(ctx context.Context, msg dto.Msg) {
 }
 
 func (room *Room) SetScreen(ctx context.Context, screen dto.Screen) {
-	room.SendMsg(
-		ctx,
-		dto.Msg{
-			Action:  dto.SET_SCREEN,
-			Payload: screen,
-		})
+	ps := room.GetPlayersSnapshot()
+	for _, p := range ps {
+		p.SetScreen(ctx, screen)
+	}
 }
 
 // GetPlayersSnapshot возвращает копию карты игроков

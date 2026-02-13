@@ -47,3 +47,6 @@ func (p *Player) SendMsg(ctx context.Context, msg dto.Msg) {
 		log.Printf("%s: send msg err: %v", p.Id(), err)
 	}
 }
+func (p *Player) SetScreen(ctx context.Context, screen dto.Screen) {
+	p.SendMsg(ctx, dto.Msg{Action: dto.SET_SCREEN, Payload: screen})
+}

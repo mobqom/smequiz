@@ -25,7 +25,7 @@ func Watch(r *http.Request, reqMsg dto.Msg, p *domain.Player, m *domain.RoomMana
 		}
 		room.SetScreen(r.Context(), dto.TIMER_SCREEN)
 		plist := room.GetPlayersSnapshot()
-
+		
 		go func() {
 			qList := domain.InitQuestion()
 
@@ -48,7 +48,7 @@ func Watch(r *http.Request, reqMsg dto.Msg, p *domain.Player, m *domain.RoomMana
 					return
 				}
 				payload := dto.QuestionPayload{Question: stg.Question.Text, StageId: stg.Id}
-				p.SendMsg(ctx, dto.Msg{Action: dto.SET_SCREEN, Payload: dto.QUESTION_SCREEN})
+				p.SetScreen(ctx, dto.QUESTION_SCREEN)
 				p.SendMsg(ctx, dto.Msg{Action: dto.SET_QUESTION, Payload: payload})
 			}()
 		}

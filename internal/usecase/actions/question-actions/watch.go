@@ -37,10 +37,10 @@ func Watch(r *http.Request, reqMsg dto.Msg, m *domain.RoomManager, p *domain.Pla
 		mu.Lock()
 		s.Answer[p.Id()] = data.Answer
 		mu.Unlock()
-		slist := room.Stages()
-		swa := game_actions.FindStageWithoutAnswer(slist, p)
+		stages := room.Stages()
+		swa := game_actions.FindStageWithoutAnswer(stages, p)
 		if swa == nil {
-			p.SendMsg(r.Context(), dto.Msg{Action: dto.SET_SCREEN, Payload: dto.QUESTION_RESULT_SCREEN})
+			p.SetScreen(r.Context(), dto.QUESTION_RESULT_SCREEN)
 			return
 		}
 		payload := dto.QuestionPayload{Question: swa.Question.Text, StageId: swa.Id}
