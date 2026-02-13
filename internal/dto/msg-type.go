@@ -12,4 +12,5 @@ const (
 	START_GAME   ActionType = "START_GAME"
 	SET_SCREEN   ActionType = "SET_SCREEN"
 	TIMER_TIME   ActionType = "TIMER_TIME"
+	SET_QUESTION ActionType = "SET_QUESTION"
 )

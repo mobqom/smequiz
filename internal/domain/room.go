@@ -84,3 +84,9 @@ func (room *Room) AddStage(stage *Stage) {
 	defer room.mu.Unlock()
 	room.stage = append(room.stage, stage)
 }
+
+func (room *Room) GetStage() []*Stage {
+	room.mu.RLock()
+	defer room.mu.RUnlock()
+	return room.stage
+}
