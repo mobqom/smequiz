@@ -2,7 +2,6 @@ package game_actions
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"net/http"
 
@@ -66,8 +65,7 @@ func getPlayersCount(pCoupleIds []string, pId string) int {
 }
 
 func InitRoomStages(playersList map[string]*domain.Player, qList []domain.Question, room *domain.Room) []*domain.Stage {
-	pCoupleIds := make([]string, 0, len(playersList))
-	fmt.Println(pCoupleIds)
+	pCoupleIds := make([]string, 0, len(playersList)*MaxPlayersInStage)
 	for k1, p1 := range playersList {
 		for k2, p2 := range playersList {
 			if k1 == k2 {
