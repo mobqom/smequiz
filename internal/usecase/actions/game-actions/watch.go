@@ -27,7 +27,7 @@ func Watch(r *http.Request, reqMsg dto.Msg, p *domain.Player, m *domain.RoomMana
 			roomPlayers := room.PlayersSnapshot()
 
 			go func() {
-				qList := domain.InitQuestion()
+				qList := utils.InitQuestion()
 				stagesCh <- InitRoomStages(roomPlayers, qList, room)
 			}()
 

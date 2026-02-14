@@ -47,7 +47,9 @@ func (room *Room) SendMsg(ctx context.Context, msg dto.Msg) {
 func (room *Room) SetScreen(ctx context.Context, screen dto.Screen) {
 	ps := room.PlayersSnapshot()
 	for _, p := range ps {
-		p.SetScreen(ctx, screen)
+		go func() {
+			p.SetScreen(ctx, screen)
+		}()
 	}
 }
 
