@@ -1,6 +1,7 @@
 package server
 
 import (
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
@@ -21,7 +22,7 @@ func Run(cfg *config.AppConfig) {
 		}),
 	}
 	log.Printf("Сервер запущен на %v", addr)
-	if err := server.ListenAndServe(); err != http.ErrServerClosed {
+	if err := server.ListenAndServe(); !errors.Is(err, http.ErrServerClosed) {
 		log.Fatal("ListenAndServe:", err)
 	}
 }

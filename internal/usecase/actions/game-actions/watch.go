@@ -12,46 +12,97 @@ import (
 
 const (
 	MaxPlayersInStage int = 2
+	TimeToEndRound        = 30
 )
 
 func Watch(r *http.Request, reqMsg dto.Msg, p *domain.Player, m *domain.RoomManager) {
 	switch reqMsg.Action {
 	case dto.START_GAME:
-		stagesCh := make(chan []*domain.Stage)
-		room, err := m.RoomById(p.RoomId())
-		if err != nil {
-			log.Printf("room does not exist %s\n", err)
-		}
-		room.SetScreen(r.Context(), dto.TIMER_SCREEN)
-		plist := room.PlayersSnapshot()
-
 		go func() {
-			qList := domain.InitQuestion()
+			stagesCh := make(chan []*domain.Stage)
+			room, err := m.RoomById(p.RoomId())
+			if err != nil {
+				log.Printf("room does not exist %s\n", err)
+			}
+			roomPlayers := room.PlayersSnapshot()
 
-			stagesCh <- InitRoomStages(plist, qList, room)
+			go func() {
+				qList := domain.InitQuestion()
+				stagesCh <- InitRoomStages(roomPlayers, qList, room)
+			}()
+
+			room.SetScreen(r.Context(), dto.TIMER_SCREEN)
+			SetTimerTime(r.Context(), room, 3)
+
+			stages := <-stagesCh
+			for _, p := range roomPlayers {
+				go func() {
+					stg := FindStageWithoutAnswer(stages, p)
+					if stg == nil {
+						return
+					}
+					payload := dto.QuestionPayload{Question: stg.Question.Text, StageId: stg.Id}
+					p.SetScreen(r.Context(), dto.QUESTION_SCREEN)
+					p.SendMsg(r.Context(), dto.Msg{Action: dto.SET_QUESTION, Payload: payload})
+				}()
+			}
+			WaitRoundEnd(r, room)
 		}()
-		for v := range utils.Timer(3) {
+	}
+}
+
+func WaitRoundEnd(r *http.Request, room *domain.Room) {
+	cancelTimerCtx, cancel := context.WithCancel(context.Background())
+
+	go func() {
+		SetTimerTime(cancelTimerCtx, room, TimeToEndRound)
+		room.SetScreen(r.Context(), dto.QUESTION_RESULT_SCREEN)
+	}()
+
+	go func() {
+		stages := room.Stages()
+		isAllAnswersDone := true
+		for {
+			select {
+			case <-cancelTimerCtx.Done():
+				room.SetScreen(r.Context(), dto.QUESTION_RESULT_SCREEN)
+				return
+			default:
+				isAllAnswersDone = CheckStageToAllAnswers(stages)
+			}
+			if isAllAnswersDone {
+				cancel()
+			}
+		}
+	}()
+
+}
+
+func CheckStageToAllAnswers(stages []*domain.Stage) bool {
+	result := true
+	for _, s := range stages {
+		ansCount := len(s.Answer)
+		if ansCount < MaxPlayersInStage {
+			result = false
+		}
+	}
+	return result
+}
+func SetTimerTime(ctx context.Context, room *domain.Room, seconds int) {
+	for v := range utils.Timer(seconds) {
+		select {
+		case <-ctx.Done():
+			return
+		default:
 			p := &dto.TimerPayload{Value: v, Done: false}
 			if v == 0 {
 				p.Done = true
 			}
-			room.SendMsg(r.Context(), dto.Msg{Action: dto.TIMER_TIME, Payload: p})
+			room.SendMsg(ctx, dto.Msg{Action: dto.TIMER_TIME, Payload: p})
 		}
 
-		ctx := context.Background()
-		stages := <-stagesCh
-		for _, p := range plist {
-			go func() {
-				stg := FindStageWithoutAnswer(stages, p)
-				if stg == nil {
-					return
-				}
-				payload := dto.QuestionPayload{Question: stg.Question.Text, StageId: stg.Id}
-				p.SetScreen(ctx, dto.QUESTION_SCREEN)
-				p.SendMsg(ctx, dto.Msg{Action: dto.SET_QUESTION, Payload: payload})
-			}()
-		}
 	}
+
 }
 
 func getPlayersCount(pCoupleIds []string, pId string) int {
@@ -64,10 +115,10 @@ func getPlayersCount(pCoupleIds []string, pId string) int {
 	return result
 }
 
-func InitRoomStages(playersList map[string]*domain.Player, qList []domain.Question, room *domain.Room) []*domain.Stage {
-	pCoupleIds := make([]string, 0, len(playersList)*MaxPlayersInStage)
-	for k1, p1 := range playersList {
-		for k2, p2 := range playersList {
+func InitRoomStages(roomPlayers map[string]*domain.Player, qList []domain.Question, room *domain.Room) []*domain.Stage {
+	pCoupleIds := make([]string, 0, len(roomPlayers)*MaxPlayersInStage)
+	for k1, p1 := range roomPlayers {
+		for k2, p2 := range roomPlayers {
 			if k1 == k2 {
 				continue
 			}
